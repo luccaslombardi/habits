@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Feather } from '@expo/vector-icons'
 import { BackButton } from "../components/BackButton";
 import { Checkbox } from "../components/Checkbox";
 import colors from "tailwindcss/colors";
+import { api } from "../lib/axios";
 
 const avaiableWeekDays = [
     'Domingo',
@@ -17,6 +18,7 @@ const avaiableWeekDays = [
 
 export function New() {
     const [weekDays, setWeekDays] = useState<number[]>([])
+    const [title, setTitle] = useState('')
 
     function handleToogleWeekDay(weekDayIndex: number) {
         if (weekDays.includes(weekDayIndex)) {
@@ -24,6 +26,24 @@ export function New() {
 
         } else {
             setWeekDays(prevState => [...prevState, weekDayIndex])
+        }
+    }
+
+    async function handleCreateNewhabit() {
+        try {
+            if (!title.trim() || weekDays.length === 0) {
+                Alert.alert('Preencha os campos', 'Informe o hábito e o período')
+            }
+
+            await api.post('/habits', { title, weekDays })
+
+            setTitle('')
+            setWeekDays([])
+
+            Alert.alert('Hábito Criado', 'Seu hábito foi criado com sucesso')
+        } catch (error) {
+            console.log(error)
+            Alert.alert('Ops!', 'Não foi possível criar o hábito')
         }
     }
 
@@ -48,6 +68,8 @@ export function New() {
                     className="h-12 pl-4 rounded-lg mt-3 bg-zinc-900 text-white border-2 border-zinc-800 focus:border-green-600 "
                     placeholder="Digite aqui o hábito desejável..."
                     placeholderTextColor={colors.zinc[400]}
+                    onChangeText={setTitle}
+                    value={title}
                 />
 
                 <Text className="mt-4 mb-3 text-white font-semibold text-base">
@@ -68,6 +90,7 @@ export function New() {
                 <TouchableOpacity
                     className="w-full h-14 flex-row items-center justify-center bg-green-600 rounded-md mt-6"
                     activeOpacity={0.7}
+                    onPress={handleCreateNewhabit}
                 >
                     <Feather
                         name="check"
